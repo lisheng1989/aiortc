@@ -239,10 +239,7 @@ if __name__ == "__main__":
 player = MediaPlayer('/dev/video0', format='v4l2', options={
     'video_size': '1920x1080'
 })
-    # create media sink
-    if args.record_to:
-        recorder = MediaRecorder(args.record_to)
-    else:
+
         recorder = None
 
     loop = asyncio.get_event_loop()
