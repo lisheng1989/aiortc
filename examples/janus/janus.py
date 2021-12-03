@@ -236,7 +236,9 @@ if __name__ == "__main__":
         player = MediaPlayer(args.play_from)
     else:
         player = None
-
+player = MediaPlayer('/dev/video0', format='v4l2', options={
+    'video_size': '1920x1080'
+})
     # create media sink
     if args.record_to:
         recorder = MediaRecorder(args.record_to)
