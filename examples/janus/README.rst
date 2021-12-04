@@ -10,12 +10,12 @@ First install the required packages:
 
 .. code-block:: console
 
-    $ pip install aiohttp aiortc
+    $ pip3 install aiohttp aiortc
 
 When you run the example, it will connect to Janus and join the '1234' room:
 
 .. code-block:: console
 
-   $ python janus.py --room 1234 https://ws.ychzp.top/janus
+   $ python3 janus.py --room 1234 https://ws.ychzp.top/janus
 
 

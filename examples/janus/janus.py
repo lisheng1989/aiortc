@@ -4,6 +4,7 @@ import logging
 import random
 import string
 import time
+import sys
 
 import aiohttp
 
@@ -107,10 +108,12 @@ async def publish(plugin, player):
     # configure media
     media = {"audio": False, "video": True}
     if player and player.audio:
+        print("audio")
         pc.addTrack(player.audio)
         media["audio"] = True
 
     if player and player.video:
+        print("video")
         pc.addTrack(player.video)
     else:
         pc.addTrack(VideoStreamTrack())
@@ -193,6 +196,9 @@ async def run(player, recorder, room, session):
             }
         }
     )
+    print(response)
+    if("publishers" not in response["plugindata"]["data"]):
+        return
     publishers = response["plugindata"]["data"]["publishers"]
     for publisher in publishers:
         print("id: %(id)s, display: %(display)s" % publisher)
@@ -206,9 +212,7 @@ async def run(player, recorder, room, session):
             session=session, room=room, feed=publishers[0]["id"], recorder=recorder
         )
 
-    # exchange media for 10 minutes
     print("Exchanging media")
-    await asyncio.sleep(600)
 
 
 if __name__ == "__main__":
@@ -236,8 +240,10 @@ if __name__ == "__main__":
         player = MediaPlayer(args.play_from)
     else:
         player = None
-        
-    player = MediaPlayer('/dev/video0', format='v4l2', options={'video_size': '1920x1080'})
+    if sys.platform=="darwin":
+        player = MediaPlayer('0:0', format='avfoundation', options={'framerate':'30','video_size': '640x480'})
+    else:
+        player = MediaPlayer('/dev/video0', format='v4l2', options={'framerate':'30','video_size': '1920x1080'})	
 
     # create media sink
     if args.record_to:
@@ -250,6 +256,7 @@ if __name__ == "__main__":
         loop.run_until_complete(
             run(player=player, recorder=recorder, room=args.room, session=session)
         )
+        loop.run_forever()
     except KeyboardInterrupt:
         pass
     finally:
