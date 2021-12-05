@@ -243,7 +243,7 @@ if __name__ == "__main__":
     if sys.platform=="darwin":
         player = MediaPlayer('0:0', format='avfoundation', options={'framerate':'30','video_size': '640x480'})
     else:
-        player = MediaPlayer('/dev/video0', format='v4l2', options={'framerate':'30','video_size': '640x480'})	
+        player = MediaPlayer('/dev/video0', format='v4l2', options={'video_size': '640x480'})	
 
     # create media sink
     if args.record_to:
