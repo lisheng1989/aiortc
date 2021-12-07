@@ -117,7 +117,12 @@ async def publish(plugin, player):
         pc.addTrack(player.video)
     else:
         pc.addTrack(VideoStreamTrack())
-
+    if media["audio"] != True:
+        if sys.platform !="darwin":
+           audioPlayer = MediaPlayer("hw:1",format="alsa",options={"channels":"1","sample_rate":"48000"})
+           pc.addTrack(audioPlayer.audio)
+           media["audio"]=True
+           print("pi audio")
     # send offer
     await pc.setLocalDescription(await pc.createOffer())
     request = {"request": "configure"}
@@ -139,6 +144,7 @@ async def publish(plugin, player):
             sdp=response["jsep"]["sdp"], type=response["jsep"]["type"]
         )
     )
+    print("end publish")
 
 
 async def subscribe(session, room, feed, recorder):
@@ -208,6 +214,7 @@ async def run(player, recorder, room, session):
 
     # receive video
     if recorder is not None and publishers:
+        print("record")
         await subscribe(
             session=session, room=room, feed=publishers[0]["id"], recorder=recorder
         )
@@ -243,7 +250,7 @@ if __name__ == "__main__":
     if sys.platform=="darwin":
         player = MediaPlayer('0:0', format='avfoundation', options={'framerate':'30','video_size': '640x480'})
     else:
-        player = MediaPlayer('/dev/video0', format='v4l2', options={'framerate':'30','video_size': '1920x1080'})	
+        player = MediaPlayer('/dev/video0', format='v4l2', options={'framerate':'8','video_size': '1280x720'})	
 
     # create media sink
     if args.record_to:
