@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import json
 import logging
 import random
 import string
@@ -30,9 +31,19 @@ class JanusPlugin:
         async with self._session._http.post(self._url, json=message) as response:
             data = await response.json()
             assert data["janus"] == "ack"
-
         response = await self._queue.get()
         assert response["transaction"] == message["transaction"]
+        return response
+
+    async def syncsend(self, payload):
+        message = {"janus": "message", "transaction": transaction_id()}
+        message.update(payload)
+        response=None
+        async with self._session._http.post(self._url, json=message) as response:
+            data = await response.json()
+            print("syncsend data:",data)
+            assert data["janus"] == "success"
+            assert data["transaction"] == message["transaction"]
         return response
 
 
@@ -68,7 +79,7 @@ class JanusSession:
             self._session_url = self._root_url + "/" + str(session_id)
 
         self._poll_task = asyncio.ensure_future(self._poll())
-
+    
     async def destroy(self):
         if self._poll_task:
             self._poll_task.cancel()
@@ -186,12 +197,22 @@ async def subscribe(session, room, feed, recorder):
     )
     await recorder.start()
 
-
 async def run(player, recorder, room, session):
     await session.create()
-
-    # join video room
     plugin = await session.attach("janus.plugin.videoroom")
+    # create video room
+    print("start create room")
+    response = await plugin.syncsend(
+        {
+            "body": {
+               "request": "create",
+                "room": room,
+               "description": "aiortc",
+            }
+        }
+    ) 
+    print("start join room")
+    # join video room
     response = await plugin.send(
         {
             "body": {
@@ -250,7 +271,7 @@ if __name__ == "__main__":
     if sys.platform=="darwin":
         player = MediaPlayer('0:0', format='avfoundation', options={'framerate':'30','video_size': '640x480'})
     else:
-        player = MediaPlayer('/dev/video0', format='v4l2', options={'framerate':'8','video_size': '1280x720'})	
+        player = MediaPlayer('/dev/video0', format='v4l2', options={'framerate':'10','video_size': '640x480'})	
 
     # create media sink
     if args.record_to:
