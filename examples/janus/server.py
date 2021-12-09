@@ -26,13 +26,28 @@ class EchoHTTPHandler(BaseHTTPRequestHandler):
         for line in p.stdout.readlines():   
             print(line,)   
         retval = p.wait()
+    
     def rtcClient(self):
         print(self.path)
-        if(self.path !="/rtcclient"):
+        api=self.path
+        data={}
+        if self.path.find('?') != -1:
+            reqUrl = self.path.split('?',1)[1]
+            api = self.path.split('?',1)[0]
+            parameters = reqUrl.split('&')
+            for i in parameters:
+                key,val = i.split('=',1)
+                data[key] =val
+
+        print("api",api)
+        if(api !="/rtcclient"):
             return
-        content_len = int(self.headers['Content-Length'])   
-        post_body = self.rfile.read(content_len)
-        data = json.loads(post_body)
+        if(self.headers['Content-Length'] is not None):
+            content_len = int(self.headers['Content-Length'])
+            if content_len != 0:   
+                post_body = self.rfile.read(content_len)
+                data = json.loads(post_body)
+        
         if(data['action'] is not None):
             str = data['action']
             if(str=='start'):
